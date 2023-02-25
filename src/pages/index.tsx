@@ -1,24 +1,36 @@
-import { styled } from '../styles'
+import Image from 'next/image'
 
-const Button = styled('button', {
-  backgroundColor: '$green500',
-  borderRadius: 4,
-  border: 0,
-  padding: '4px 8px',
+import { useKeenSlider } from 'keen-slider/react'
+import 'keen-slider/keen-slider.min.css'
 
-  span: {
-    fontWeight: 'bold',
-  },
+import { HomeContainer, HomeSlider, ProductItem } from '../styles/pages/home'
 
-  '&:hover': {
-    backgroundColor: '$green300',
-  },
-})
+import tshirt from '../assets/tshirt.png'
 
 export default function Home() {
+  const [sliderRef] = useKeenSlider({
+    slides: {
+      perView: 3,
+      spacing: 48,
+    },
+  })
+
   return (
-    <Button>
-      <span>Teste</span> Enviar
-    </Button>
+    <HomeContainer>
+      <HomeSlider ref={sliderRef} className="keen-slider">
+        {[1, 2, 3, 4].map((item) => {
+          return (
+            <ProductItem href="#" key={item} className="keen-slider__slide">
+              <Image src={tshirt} width={520} height={480} alt="" />
+
+              <footer>
+                <strong>T-shit X</strong>
+                <span>$ 79.90</span>
+              </footer>
+            </ProductItem>
+          )
+        })}
+      </HomeSlider>
+    </HomeContainer>
   )
 }
