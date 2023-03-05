@@ -1,6 +1,8 @@
+import axios from 'axios'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
+import { useState } from 'react'
 
 import Stripe from 'stripe'
 import { stripe } from '../../lib/stripe'
@@ -18,11 +20,31 @@ interface ProductProps {
     imageUrl: string
     price: string
     description: string
+    defaultPriceId: string
   }
 }
 
 export default function Product({ product }: ProductProps) {
   const { isFallback } = useRouter()
+  const [isCreateCheckoutSession, setTsCreateCheckoutSession] = useState(false)
+
+  const handleByProduct = async () => {
+    try {
+      setTsCreateCheckoutSession(true)
+
+      const res = await axios.post('/api/checkout', {
+        priceId: product.defaultPriceId,
+      })
+
+      const { checkoutUrl } = res.data
+
+      window.location.href = checkoutUrl
+    } catch (err) {
+      setTsCreateCheckoutSession(false)
+      // Connect to Datadog or Sentry
+      alert('Failed to checkout tredirect!')
+    }
+  }
 
   if (isFallback) {
     return <p>Loading...</p>
@@ -43,7 +65,9 @@ export default function Product({ product }: ProductProps) {
         <span>{product.price}</span>
         <p>{product.description}</p>
 
-        <button>Buy Now</button>
+        <button disabled={isCreateCheckoutSession} onClick={handleByProduct}>
+          Buy Now
+        </button>
       </ProductDetails>
     </ProductContainer>
   )
@@ -78,6 +102,7 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({
           currency: 'BRL',
         }).format(price.unit_amount / 100),
         description: product.description,
+        defaultPriceId: price.id,
       },
     },
     revalidate: 60 * 60 * 1, // 1 hour
